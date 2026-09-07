@@ -29,6 +29,8 @@ STACK_CHARS = {
     OpKind.MUL: "*",
     OpKind.DIV: "/",
     OpKind.MOD: "%",
+    OpKind.NOT: "!",
+    OpKind.GREATER: "`",
     OpKind.DUP: ":",
     OpKind.SWAP: "\\",
     OpKind.DROP: "$",

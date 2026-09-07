@@ -1,4 +1,4 @@
-# GlyphFunge v0.3 — Design
+# GlyphFunge v0.4 — Design
 
 GlyphFunge is a deterministic geometric frontend/compiler for Befunge-93.
 
@@ -59,22 +59,24 @@ Inspected before writing a line (see `../GlyphFuck/`). Reused as **concepts**
 - Every route must terminate in `halt` / `goto` / `branch_zero`; otherwise
   the IP would execute spaces until it wraps, and we call that an error.
 
-## Code IR boundary (v0.3)
+## Code IR boundary (v0.4)
 
 `glyphfunge/code_ir.py` accepts Code IR's canonical JSON shape directly. It
 does not import `py_transpile_toy`, preserving GlyphFunge's standalone public
-boundary. The first native layer accepts a parameterless `main() -> int` with
-literal arithmetic, `Emit`, and final `Return`, then emits a normal route of
-Befunge operations. There is no Code IR bytecode interpreter or substitute VM
-at runtime.
+boundary. Layer 1 accepts a parameterless `main() -> int` with declared `int`
+locals, straight-line assignment, literal arithmetic, `Emit`, and final
+`Return`, then emits a normal route of Befunge operations. A variable read is
+expanded to its last assigned pure expression. This is intentionally static:
+there is no Code IR bytecode interpreter, memory store, or substitute VM at
+runtime.
 
 The Code IR frontend's floor division is compatible with Befunge's truncating
 division only when operands are nonnegative; this backend rejects the other
 case rather than silently changing semantics. It also fixes evidence to the
-signed 32-bit domain. Variables, calls, comparisons and control flow await
-their own explicit geometric lowering layer.
+signed 32-bit domain. Calls, comparisons and control flow await their own
+explicit geometric lowering layer.
 
-## What is deliberately NOT inherited / NOT done (v0.3)
+## What is deliberately NOT inherited / NOT done (v0.4)
 
 - **No glyphs, text layout, anchors, transforms, Bresenham lines.** Those
   draw pictures; here pixels are instructions. Different job.

@@ -1,1 +1,25 @@
-{"capabilities":["arithmetic","emit","functions","int","return"],"contract_version":"code-ir/0.1-draft","functions":[{"body":{"statements":[{"kind":"Emit","value":{"kind":"Binary","left":{"kind":"Binary","left":{"kind":"IntLiteral","value":9},"operator":"add","right":{"kind":"IntLiteral","value":3}},"operator":"multiply","right":{"kind":"IntLiteral","value":2}}},{"kind":"Return","value":{"kind":"IntLiteral","value":0}}]},"effects":["EMIT_VALUE","RETURN_VALUE"],"errors":[],"id":"fn.main","locals":[],"metadata":{},"name":"main","parameters":[],"return_type":{"element_type":null,"key_type":null,"length":null,"name":"int","value_type":null}}],"numeric_model":{"bits":null,"division":"floor","domain":"arbitrary","modulo_sign":"divisor","overflow":"unbounded"},"source_metadata":{"source_name":"code_ir_arithmetic.py"}}
+{
+  "capabilities": ["arithmetic", "comparisons", "emit", "functions", "if", "int", "return", "variables"],
+  "contract_version": "code-ir/0.1-draft",
+  "functions": [{
+    "body": {"statements": [
+      {"kind": "Assign", "target": "x", "value": {"kind": "IntLiteral", "value": 9}},
+      {"kind": "Assign", "target": "y", "value": {"kind": "Binary", "left": {"kind": "Variable", "name": "x"}, "operator": "add", "right": {"kind": "IntLiteral", "value": 3}}},
+      {"kind": "Assign", "target": "x", "value": {"kind": "Binary", "left": {"kind": "Variable", "name": "y"}, "operator": "multiply", "right": {"kind": "IntLiteral", "value": 2}}},
+      {"kind": "If", "test": {"kind": "Compare", "left": {"kind": "Variable", "name": "x"}, "operator": "greater", "right": {"kind": "IntLiteral", "value": 9}}, "then_body": {"statements": [{"kind": "Emit", "value": {"kind": "Variable", "name": "x"}}, {"kind": "Return", "value": {"kind": "Variable", "name": "x"}}]}, "else_body": {"statements": [{"kind": "Emit", "value": {"kind": "IntLiteral", "value": 0}}, {"kind": "Return", "value": {"kind": "IntLiteral", "value": 0}}]}}
+    ]},
+    "effects": ["EMIT_VALUE", "MUTATE_LOCAL", "RETURN_VALUE"],
+    "errors": [],
+    "id": "fn.main",
+    "locals": [
+      {"name": "x", "type": {"element_type": null, "key_type": null, "length": null, "name": "int", "value_type": null}},
+      {"name": "y", "type": {"element_type": null, "key_type": null, "length": null, "name": "int", "value_type": null}}
+    ],
+    "metadata": {},
+    "name": "main",
+    "parameters": [],
+    "return_type": {"element_type": null, "key_type": null, "length": null, "name": "int", "value_type": null}
+  }],
+  "numeric_model": {"bits": null, "division": "floor", "domain": "arbitrary", "modulo_sign": "divisor", "overflow": "unbounded"},
+  "source_metadata": {"source_name": "code_ir_conditional.py"}
+}

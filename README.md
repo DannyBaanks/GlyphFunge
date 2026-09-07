@@ -96,7 +96,7 @@ third-party `befunge.js`:
 5 4 3 2 1 0
 ```
 
-## Code IR native backend (v0.3, layer 0)
+## Code IR native backend (v0.5, layer 2)
 
 GlyphFunge now accepts canonical `code-ir/0.1-draft` JSON without importing
 the experimental Code IR Python package. This keeps the public compiler
@@ -106,11 +106,13 @@ standalone while allowing any validated Code IR frontend to feed it.
 Code IR canonical JSON -> GlyphFunge route source -> ordinary Befunge-93
 ```
 
-Layer 0 is deliberately small: one parameterless `main() -> int`, literal
-arithmetic (`+ - * // %`), zero or more `Emit` statements, and one final
-`Return`. `Emit` lowers directly to Befunge stack operations plus `.`. It is
-not an interpreter or a private VM. Variables, calls, comparisons, branches,
-loops, arrays, maps and strings are rejected explicitly until their native
+Layer 2 supports one parameterless `main() -> int`, declared `int` locals,
+straight-line `Assign`, literal arithmetic (`+ - * // %`), zero or more
+`Emit` statements, and one final `Return`. A local read expands to the last
+assigned expression, so the output remains native Befunge stack operations;
+there is no hidden memory runtime or private VM. Integer comparisons and one
+terminal `if/else` lower to real Befunge `!`/`` ` `` operations and `|` routes.
+Calls, loops, arrays, maps and strings remain rejected until their native
 geometric lowering exists.
 
 For `/` and `%`, operands must be nonnegative: Code IR specifies floor division
@@ -124,9 +126,9 @@ python -m glyphfunge compile-ir examples/code_ir_arithmetic.json \
   --gf-output generated/code_ir_arithmetic.gf
 ```
 
-The fixture emits `24 ` using native Befunge `93+2*.0$@`.
+The fixture reassigns locals then emits `24 ` using native Befunge operations.
 
-## Syntax reference (v0.3)
+## Syntax reference (v0.4)
 
 ```text
 canvas W H                   # optional; must fit the Befunge-93 80x25 field
@@ -136,7 +138,7 @@ expect output "STRING"       # optional, used by `verify`
 route NAME:                  # entry route: no placement needed
 route NAME at X Y facing right|left|up|down:   # every other route
     push N                   # N in 0..9  -> digit
-    add | sub | mul | div | mod
+    add | sub | mul | div | mod | not | greater
     dup | swap | drop
     print_num | print_char
     print "TEXT"             # string mode: emits " + reversed + " + commas
@@ -226,7 +228,7 @@ generated `generated/arithmetic.bf`:
 
 output: `12 ` (Befunge-93 `.` prints the number followed by a space).
 
-## Evidence (v0.3, all reproducible with `python -m glyphfunge verify`)
+## Evidence (v0.4, all reproducible with `python -m glyphfunge verify`)
 
 | example | playfield | sha256 (generated .bf) | output | reference | independent (befunge.js) |
 |---|---|---|---|---|---|
@@ -236,7 +238,7 @@ output: `12 ` (Befunge-93 `.` prints the number followed by a space).
 | hello | 30x1 | `753072bf869627c921e722bde32881fa7ffbfe971edc74256b559e0c48dfc4cc` | `Hello, World!` | PASS, 15 steps | PASS |
 | fizzbuzz | 60x8 | `75ce71f83a9a651fd1dbe1b3ce84ad218328c9c1e529eb91ccf7d4d9970fcb4e` | `1 2 Fizz 4 Buzz Fizz 7 8 Fizz Buzz 11 Fizz 13 14 FizzBuzz ` | PASS, 1538 steps | PASS |
 | meta_befunge | 20x2 | `e84bd135ce2f7d14890e135c3deca8d0a7720f6d5e04026e872badb194ce8e80` | `93+.@` | PASS | PASS |
-| code_ir_arithmetic | 80x1 | `816f31981598554927afa67205038723a1750c509be89ed362c1ce659df9b850` | `24 ` | PASS, 9 steps | PASS |
+| code_ir_arithmetic | 80x3 | `a60e2bd45dd6a76c12d3c72463357a736730ba81118d143614aa8a4f88a76879` | `24 ` | PASS, 24 steps | PASS |
 
 Same `.gf` source always produces byte-identical `.bf` output
 (tested in CI-style tests, including a pinned SHA-256 for `countdown.bf`).
@@ -252,10 +254,10 @@ behavior, not filenames. If the independent interpreter cannot be found, the
 test **skips with an explicit reason printed** — it never fakes a pass.
 
 ```bash
-python -m pytest tests -q -rs     # 44 tests; skip reasons shown if any
+python -m pytest tests -q -rs     # 45 tests; skip reasons shown if any
 ```
 
-## Limitations (v0.3, on purpose)
+## Limitations (v0.4, on purpose)
 
 - No `p`/`g` self-modification, no concurrency, no multiple IPs, no
   Befunge-98, no fingerprints, no `?` (source of randomness is banned).
@@ -276,7 +278,7 @@ python -m pytest tests -q -rs     # 44 tests; skip reasons shown if any
 glyphfunge/            parser, ast, geometry, router, compiler, code_ir, validator, cli, interpreter
 examples/              GlyphFunge programs plus canonical Code IR fixture
 generated/             committed .bf and bridge artifacts (byte-stable)
-tests/                 pytest suite (44 tests)
+tests/                 pytest suite (45 tests)
 tools/run_befunge.js   harness for the independent third-party interpreter
 DESIGN.md              what came from GlyphFuck, what is Befunge-specific, why
 ```

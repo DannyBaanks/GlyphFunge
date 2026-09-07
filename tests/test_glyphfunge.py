@@ -74,6 +74,9 @@ def test_code_ir_arithmetic_lowers_to_native_befunge():
     assert "push 9" in bridge.lowering.glyphfunge
     assert "add" in bridge.lowering.glyphfunge
     assert "mul" in bridge.lowering.glyphfunge
+    assert "greater" in bridge.lowering.glyphfunge
+    assert "branch_zero if_zero if_nonzero" in bridge.lowering.glyphfunge
+    assert "Variable" not in bridge.lowering.glyphfunge
     assert "Emit" not in bridge.lowering.glyphfunge
     run = run_befunge(bridge.compiled.befunge)
     assert run.status == "halted"
@@ -97,10 +100,10 @@ def test_code_ir_compile_matches_committed_bridge_artifact():
     committed = (GENERATED / "code_ir_arithmetic.bf").read_text(encoding="utf-8")
     bridge = compile_code_ir(fixture)
     assert bridge.compiled.befunge == committed
-    assert bridge.compiled.sha256() == "816f31981598554927afa67205038723a1750c509be89ed362c1ce659df9b850"
+    assert bridge.compiled.sha256() == "a60e2bd45dd6a76c12d3c72463357a736730ba81118d143614aa8a4f88a76879"
 
 
-def test_code_ir_rejects_non_native_constructs():
+def test_code_ir_rejects_assignment_to_undeclared_local():
     module = {
         "contract_version": "code-ir/0.1-draft",
         "functions": [{
@@ -114,7 +117,25 @@ def test_code_ir_rejects_non_native_constructs():
             ]},
         }],
     }
-    with pytest.raises(CodeIRLoweringError, match="Assign"):
+    with pytest.raises(CodeIRLoweringError, match="not a declared local"):
+        lower_code_ir(module)
+
+
+def test_code_ir_rejects_read_before_assignment():
+    module = {
+        "contract_version": "code-ir/0.1-draft",
+        "functions": [{
+            "name": "main",
+            "parameters": [],
+            "locals": [{"name": "x", "type": {"name": "int"}}],
+            "return_type": {"name": "int"},
+            "body": {"statements": [
+                {"kind": "Emit", "value": {"kind": "Variable", "name": "x"}},
+                {"kind": "Return", "value": {"kind": "IntLiteral", "value": 0}},
+            ]},
+        }],
+    }
+    with pytest.raises(CodeIRLoweringError, match="used before assignment"):
         lower_code_ir(module)
 
 

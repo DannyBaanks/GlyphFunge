@@ -18,6 +18,8 @@ class OpKind(Enum):
     MUL = "mul"
     DIV = "div"
     MOD = "mod"
+    NOT = "not"
+    GREATER = "greater"
     DUP = "dup"
     SWAP = "swap"
     DROP = "drop"

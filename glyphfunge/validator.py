@@ -33,6 +33,8 @@ _STACK_EFFECT = {
     OpKind.MUL: (2, -1),
     OpKind.DIV: (2, -1),
     OpKind.MOD: (2, -1),
+    OpKind.NOT: (1, 0),
+    OpKind.GREATER: (2, -1),
     OpKind.DUP: (1, +1),
     OpKind.SWAP: (2, 0),
     OpKind.DROP: (1, -1),

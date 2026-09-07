@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-__version__ = "0.3.0"
+__version__ = "0.5.0"
 
 from .compiler import CompileResult, compile_file, compile_source
 from .code_ir import CodeIRCompileResult, CodeIRLowering, CodeIRLoweringError, compile_code_ir, lower_code_ir
