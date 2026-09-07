@@ -1,4 +1,4 @@
-# GlyphFunge v0.1 — Design
+# GlyphFunge v0.3 — Design
 
 GlyphFunge is a deterministic geometric frontend/compiler for Befunge-93.
 
@@ -59,7 +59,22 @@ Inspected before writing a line (see `../GlyphFuck/`). Reused as **concepts**
 - Every route must terminate in `halt` / `goto` / `branch_zero`; otherwise
   the IP would execute spaces until it wraps, and we call that an error.
 
-## What is deliberately NOT inherited / NOT done (v0.1)
+## Code IR boundary (v0.3)
+
+`glyphfunge/code_ir.py` accepts Code IR's canonical JSON shape directly. It
+does not import `py_transpile_toy`, preserving GlyphFunge's standalone public
+boundary. The first native layer accepts a parameterless `main() -> int` with
+literal arithmetic, `Emit`, and final `Return`, then emits a normal route of
+Befunge operations. There is no Code IR bytecode interpreter or substitute VM
+at runtime.
+
+The Code IR frontend's floor division is compatible with Befunge's truncating
+division only when operands are nonnegative; this backend rejects the other
+case rather than silently changing semantics. It also fixes evidence to the
+signed 32-bit domain. Variables, calls, comparisons and control flow await
+their own explicit geometric lowering layer.
+
+## What is deliberately NOT inherited / NOT done (v0.3)
 
 - **No glyphs, text layout, anchors, transforms, Bresenham lines.** Those
   draw pictures; here pixels are instructions. Different job.
@@ -101,8 +116,9 @@ route arrives with 1
 | `router.py` | op emission (IP simulation), label/goto/branch resolution |
 | `validator.py` | contracts: entry, bounds, stack, reachability |
 | `compiler.py` | orchestration, issues, sha256 |
+| `code_ir.py` | canonical Code IR JSON -> native GlyphFunge arithmetic layer |
 | `interpreter.py` | reference Befunge-93 interpreter (for `run`/`verify`) |
-| `cli.py` | `compile / inspect / run / verify` |
+| `cli.py` | `compile / compile-ir / inspect / run / verify` |
 | `tools/run_befunge.js` | harness for an *independent* interpreter |
 
 ## Interpreter semantics pinned by the reference implementation

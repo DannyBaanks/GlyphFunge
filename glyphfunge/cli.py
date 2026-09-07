@@ -9,7 +9,8 @@ import sys
 import tempfile
 from pathlib import Path
 
-from . import __version__, compile_file, compile_source
+from . import __version__, compile_code_ir, compile_file, compile_source
+from .code_ir import CodeIRLoweringError
 from .compiler import format_issues, sha256_text
 from .interpreter import run_befunge
 
@@ -86,6 +87,33 @@ def cmd_compile(args) -> int:
         sys.stdout.write(result.befunge)
     for issue in result.warnings:
         _eprint(issue.render())
+    return 0
+
+
+def cmd_compile_ir(args) -> int:
+    """Compile canonical Code IR JSON through the native arithmetic layer."""
+    try:
+        bridge = compile_code_ir(Path(args.file).read_text(encoding="utf-8"))
+    except (OSError, CodeIRLoweringError) as exc:
+        _eprint(str(exc))
+        return 1
+    result = bridge.compiled
+    if not result.ok:
+        _eprint(format_issues(result))
+        return 1
+    out = Path(args.output)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(result.befunge, encoding="utf-8", newline="")
+    if args.gf_output:
+        gf_out = Path(args.gf_output)
+        gf_out.parent.mkdir(parents=True, exist_ok=True)
+        gf_out.write_text(bridge.lowering.glyphfunge, encoding="utf-8", newline="")
+    print(
+        f"wrote {out} ({result.layout.playfield.width}x{result.layout.playfield.height}, "
+        f"befunge sha256 {result.sha256()})"
+    )
+    print(f"code-ir canonical sha256 {bridge.lowering.code_ir_sha256}")
+    print(f"declared output {bridge.lowering.expected_output!r}")
     return 0
 
 
@@ -192,6 +220,15 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("file")
     p.add_argument("-o", "--output", help="Write the .bf playfield to a file")
     p.set_defaults(func=cmd_compile)
+
+    p = sub.add_parser(
+        "compile-ir",
+        help="Lower canonical Code IR JSON through the native arithmetic layer",
+    )
+    p.add_argument("file", help="Canonical Code IR v0.1 JSON")
+    p.add_argument("-o", "--output", required=True, help="Write the generated .bf playfield")
+    p.add_argument("--gf-output", help="Also write the generated GlyphFunge source")
+    p.set_defaults(func=cmd_compile_ir)
 
     p = sub.add_parser("inspect", help="Show routes, labels and the playfield")
     p.add_argument("file")

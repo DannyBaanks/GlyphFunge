@@ -16,7 +16,7 @@ from pathlib import Path
 
 import pytest
 
-from glyphfunge import compile_source, parse, run_befunge
+from glyphfunge import CodeIRLoweringError, compile_code_ir, compile_source, lower_code_ir, parse, run_befunge
 from glyphfunge.cli import run_external
 from glyphfunge.parser import ParseError
 
@@ -63,6 +63,81 @@ def test_arithmetic_playfield_is_exact_single_line():
 
 def test_arithmetic_executes_to_12():
     assert run_source(ARITHMETIC) == "12 "
+
+
+def test_code_ir_arithmetic_lowers_to_native_befunge():
+    """Code IR is lowered to real stack operations, not interpreted by a VM."""
+    fixture = (EXAMPLES / "code_ir_arithmetic.json").read_text(encoding="utf-8")
+    bridge = compile_code_ir(fixture)
+    assert bridge.compiled.ok
+    assert bridge.lowering.expected_output == "24 "
+    assert "push 9" in bridge.lowering.glyphfunge
+    assert "add" in bridge.lowering.glyphfunge
+    assert "mul" in bridge.lowering.glyphfunge
+    assert "Emit" not in bridge.lowering.glyphfunge
+    run = run_befunge(bridge.compiled.befunge)
+    assert run.status == "halted"
+    assert run.output == "24 "
+
+
+def test_code_ir_is_deterministic_and_runs_independently():
+    fixture = (EXAMPLES / "code_ir_arithmetic.json").read_text(encoding="utf-8")
+    first = compile_code_ir(fixture)
+    second = compile_code_ir(fixture)
+    assert first.lowering == second.lowering
+    assert first.compiled.befunge == second.compiled.befunge
+    ran, output = run_external(first.compiled.befunge)
+    if not ran:
+        pytest.skip(output)
+    assert output == "24 "
+
+
+def test_code_ir_compile_matches_committed_bridge_artifact():
+    fixture = (EXAMPLES / "code_ir_arithmetic.json").read_text(encoding="utf-8")
+    committed = (GENERATED / "code_ir_arithmetic.bf").read_text(encoding="utf-8")
+    bridge = compile_code_ir(fixture)
+    assert bridge.compiled.befunge == committed
+    assert bridge.compiled.sha256() == "816f31981598554927afa67205038723a1750c509be89ed362c1ce659df9b850"
+
+
+def test_code_ir_rejects_non_native_constructs():
+    module = {
+        "contract_version": "code-ir/0.1-draft",
+        "functions": [{
+            "name": "main",
+            "parameters": [],
+            "locals": [],
+            "return_type": {"name": "int"},
+            "body": {"statements": [
+                {"kind": "Assign", "target": "x", "value": {"kind": "IntLiteral", "value": 1}},
+                {"kind": "Return", "value": {"kind": "IntLiteral", "value": 0}},
+            ]},
+        }],
+    }
+    with pytest.raises(CodeIRLoweringError, match="Assign"):
+        lower_code_ir(module)
+
+
+def test_code_ir_preserves_floor_contract_by_rejecting_negative_division():
+    module = {
+        "contract_version": "code-ir/0.1-draft",
+        "functions": [{
+            "name": "main",
+            "parameters": [],
+            "locals": [],
+            "return_type": {"name": "int"},
+            "body": {"statements": [
+                {"kind": "Emit", "value": {"kind": "Binary", "operator": "floor_divide",
+                    "left": {"kind": "Binary", "operator": "subtract",
+                             "left": {"kind": "IntLiteral", "value": 1},
+                             "right": {"kind": "IntLiteral", "value": 2}},
+                    "right": {"kind": "IntLiteral", "value": 2}}},
+                {"kind": "Return", "value": {"kind": "IntLiteral", "value": 0}},
+            ]},
+        }],
+    }
+    with pytest.raises(CodeIRLoweringError, match="nonnegative"):
+        lower_code_ir(module)
 
 
 def test_all_canonical_examples_execute():
