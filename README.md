@@ -1,33 +1,33 @@
 # GlyphFunge
 
-**A deterministic geometric frontend for Befunge-93. You describe the path. Befunge crawls it.**
+**Frontend geometrico determinista para Befunge-93. Tu describes la trayectoria. Befunge la recorre.**
 
 ```text
-GlyphFuck solves deterministic ASCII geometry.
-Befunge makes geometry executable.
-GlyphFunge joins those two ideas.
+GlyphFuck resuelve geometria ASCII determinista.
+Befunge hace la geometria ejecutable.
+GlyphFunge une esas dos ideas.
 ```
 
-## 30-second explanation
+## Explicacion en 30 segundos
 
-Befunge-93 programs are 2D grids of one-character instructions, walked by an
-instruction pointer that moves around like a caterpillar. Writing them means
-hand-placing every arrow on the grid — exactly the kind of exact spatial
-layout humans and LLMs are bad at.
+Los programas de Befunge-93 son rejillas 2D de instrucciones de un caracter, caminadas por un
+puntero de instrucciones que se mueve como una oruga. Escribirlos significa
+colocar flecha por flecha en la rejilla — exactamente el tipo de layout espacial
+exacto en el que los humanos y los LLMs la regan.
 
-GlyphFunge lets you write *routes* instead: named paths with push/add/print
-operations, turns, loops and branches. The compiler emits the exact
-Befunge-93 playfield — real `.bf` you can run on any Befunge-93 interpreter.
-No runtime, no VM of its own. The compiler only builds the grid; Befunge
-executes it.
+GlyphFunge te deja escribir *trayectorias* en su lugar: rutas nombradas con operaciones de push/add/print,
+vueltas, ciclos y ramificaciones. El compilador emite el playfield exacto
+de Befunge-93 — un `.bf` real que puedes correr en cualquier interprete de Befunge-93.
+Sin runtime, sin VM propia. El compilador solo construye la rejilla; Befunge
+la ejecuta.
 
 ```
-countdown.gf → parser → router (geometry) → validator → countdown.bf → any Befunge-93 interpreter
+countdown.gf → parser → router (geometria) → validator → countdown.bf → cualquier interprete Befunge-93
 ```
 
-## Install & run
+## Instalar y correr
 
-No dependencies. Python ≥ 3.10.
+Sin dependencias. Python ≥ 3.10.
 
 ```bash
 cd GlyphFunge
@@ -37,7 +37,7 @@ python -m glyphfunge run examples/countdown.gf
 python -m glyphfunge verify examples/countdown.gf
 ```
 
-## Why this beats writing the grid by hand — the countdown
+## Por que esto le gana a escribir la rejilla a mano — el countdown
 
 `examples/countdown.gf`:
 
@@ -73,7 +73,7 @@ route loopback at 7 1 facing up:
 end
 ```
 
-compiles to this Befunge-93 playfield (`generated/countdown.bf`):
+compila a este playfield de Befunge-93 (`generated/countdown.bf`):
 
 ```
 5v
@@ -83,42 +83,42 @@ compiles to this Befunge-93 playfield (`generated/countdown.bf`):
        @
 ```
 
-Read the rectangle: `push 5` at top-left, `v` down into the main line
-`>:.1-:|`, and when the counter is nonzero the `|` throws the IP **up** into
-the `<<<<<<` corridor, which leads it around the loop and back into the `>`
-at the start. The loop is literally visible as a loop. That is the whole
-point of GlyphFunge.
+Lee el rectangulo: `push 5` arriba a la izquierda, `v` abajo a la linea principal
+`>:.1-:|`, y cuando el contador es non-zero el `|` lanza el IP **hacia arriba** al
+corredor `<<<<<<`, que lo guia alrededor del ciclo y de vuelta al `>` del
+inicio. El ciclo es literalmente visible como un ciclo. Ese es todo el
+punto de GlyphFunge.
 
-Output — on both the bundled reference interpreter **and** the independent
-third-party `befunge.js`:
+Output — en el interprete de referencia incluido **y** en el
+tercero independiente `befunge.js`:
 
 ```
 5 4 3 2 1 0
 ```
 
-## Code IR native backend (v0.5, layer 2)
+## Backend nativo de Code IR (v0.5, capa 2)
 
-GlyphFunge now accepts canonical `code-ir/0.1-draft` JSON without importing
-the experimental Code IR Python package. This keeps the public compiler
-standalone while allowing any validated Code IR frontend to feed it.
+GlyphFunge ahora acepta JSON canonico `code-ir/0.1-draft` sin importar
+el paquete experimental de Code IR en Python. Esto mantiene el compilador publico
+standalone mientras permite que cualquier frontend validado de Code IR lo alimente.
 
 ```text
-Code IR canonical JSON -> GlyphFunge route source -> ordinary Befunge-93
+Code IR JSON canonico → fuente de ruta GlyphFunge → Befunge-93 ordinario
 ```
 
-Layer 2 supports one parameterless `main() -> int`, declared `int` locals,
-straight-line `Assign`, literal arithmetic (`+ - * // %`), zero or more
-`Emit` statements, and one final `Return`. A local read expands to the last
-assigned expression, so the output remains native Befunge stack operations;
-there is no hidden memory runtime or private VM. Integer comparisons and one
-terminal `if/else` lower to real Befunge `!`/`` ` `` operations and `|` routes.
-Calls, loops, arrays, maps and strings remain rejected until their native
-geometric lowering exists.
+La capa 2 soporta un `main() -> int` sin parametros, locales declarados `int`,
+`Assign` de linea recta, aritmetica literal (`+ - * // %`), cero o mas
+sentencias `Emit`, y un `Return` final. Una local leida se expande a la ultima
+expresion asignada, asi que el output se mantiene como operaciones de pila nativas de Befunge;
+no hay runtime de memoria oculta ni VM privada. Comparaciones enteras y un
+`if/else` terminal bajan a operaciones reales de Befunge `!`/`` ` `` y rutas `|`.
+Llamadas, ciclos, arrays, maps y strings siguen rechazados hasta que exista su
+lowering geometrico nativo.
 
-For `/` and `%`, operands must be nonnegative: Code IR specifies floor division
-while Befunge is truncating, and this is the shared semantic region. All
-intermediate values are constrained to signed 32-bit range for cross-host
-evidence.
+Para `/` y `%`, los operandos deben ser no-negativos: Code IR especifica division
+por piso mientras Befunge es por truncamiento, y esa es la region semantica compartida. Todos
+los valores intermedios estan restringidos a rango de 32-bit con signo para evidencia
+cross-host.
 
 ```bash
 python -m glyphfunge compile-ir examples/code_ir_arithmetic.json \
@@ -126,51 +126,50 @@ python -m glyphfunge compile-ir examples/code_ir_arithmetic.json \
   --gf-output generated/code_ir_arithmetic.gf
 ```
 
-The fixture reassigns locals then emits `24 ` using native Befunge operations.
+El fixture reasigna locales y luego emite `24 ` usando operaciones nativas de Befunge.
 
-## Syntax reference (v0.4)
+## Referencia de sintaxis (v0.4)
 
 ```text
-canvas W H                   # optional; must fit the Befunge-93 80x25 field
-entry NAME                   # the entry route always starts (0, 0) facing right
-expect output "STRING"       # optional, used by `verify`
+canvas W H                   # opcional; debe caber en el campo 80x25 de Befunge-93
+entry NAME                   # la ruta de entrada siempre empieza en (0, 0) mirando a la derecha
+expect output "STRING"       # opcional, usado por `verify`
 
-route NAME:                  # entry route: no placement needed
-route NAME at X Y facing right|left|up|down:   # every other route
-    push N                   # N in 0..9  -> digit
+route NAME:                  # ruta de entrada: no necesita placement
+route NAME at X Y facing right|left|up|down:   # todas las demas rutas
+    push N                   # N en 0..9  -> digito
     add | sub | mul | div | mod | not | greater
     dup | swap | drop
     print_num | print_char
-    print "TEXT"             # string mode: emits " + reversed + " + commas
-    label NAME               # passable join point for `goto`
-    go N                     # draw N arrows continuing straight
-    turn right|left|up|down  # one arrow cell that bends the IP
-    skip                     # '#' trampoline (jumps the next cell)
-    branch_zero Z NZ         # '|': zero goes DOWN to Z, nonzero UP to NZ
-    goto NAME                # walks straight into route/label NAME
-    halt                     # '@'; every route must end with halt|goto|branch_zero
+    print "TEXT"             # modo string: emite " + reverso + " + comas
+    label NAME               # punto de union pasable para `goto`
+    go N                     # dibuja N flechas continuando recto
+    turn right|left|up|down  # una celda de flecha que dobla el IP
+    skip                     # '#' trampoline (salta la siguiente celda)
+    branch_zero Z NZ         # '|': cero va ABAJO a Z, non-zero ARRIBA a NZ
+    goto NAME                # camina recto hacia la ruta/label NAME
+    halt                     # '@'; cada ruta debe terminar con halt|goto|branch_zero
 end
 ```
 
-Rules the compiler enforces instead of guessing:
+Reglas que el compilador impone en vez de adivinar:
 
-- The **zero** arm of `branch_zero` must start exactly one cell **below** the
-  branch; the **nonzero** arm exactly one cell **above**. That is what `|`
-  does in Befunge-93 — so GlyphFunge refuses any other geometry.
-- `goto` walks straight in the current direction and must enter the target
-  cell. If it can't, you get `ROUTE_ERROR` with coordinates, not a surprise.
-- Two routes writing different characters on one cell is a `GLYPH_ERROR`
-  naming both routes and the cell. (Two routes sharing a cell with the
-  *same* character is a legal, inspectable merge.)
-- Every route ends in `halt`, `goto` or `branch_zero`.
-- `push` takes only 0..9 (Befunge-93 digit push; compose larger numbers).
+- El brazo **cero** de `branch_zero` debe empezar exactamente una celda **abajo** de la
+  ramificacion; el brazo **non-zero** exactamente una celda **arriba**. Eso es lo que `|`
+  hace en Befunge-93 — asi que GlyphFunge rechaza cualquier otra geometria.
+- `goto` camina recto en la direccion actual y debe entrar a la celda objetivo.
+  Si no puede, obtienes `ROUTE_ERROR` con coordenadas, no una sorpresa.
+- Dos rutas escribiendo caracteres diferentes en una celda es un `GLYPH_ERROR`
+  que nombra ambas rutas y la celda. (Dos rutas compartiendo una celda con el
+  *mismo* caracter es un merge legal, inspeccionable.)
+- Cada ruta termina en `halt`, `goto` o `branch_zero`.
+- `push` solo acepta 0..9 (push de digito Befunge-93; compone numeros mas grandes).
 
-## The flagship: FizzBuzz as pure geometry (v0.2)
+## La bandera: FizzBuzz como pura geometria (v0.2)
 
-`examples/fizzbuzz.gf` — four branches, ten routes, one shared "elevator"
-column where every branch arm meets, and a return corridor across the top:
-what a nested if/else-if/else with a loop looks like when control flow is a
-place:
+`examples/fizzbuzz.gf` — cuatro ramificaciones, diez rutas, una columna compartida de "elevador"
+donde cada brazo se encuentra, y un corredor de regreso arriba: como se ve un
+if/else-if/else anidado con ciclo cuando el flujo de control es un lugar:
 
 ```
 1v
@@ -182,33 +181,33 @@ place:
                        >" zzuB",,,,,>>>>>>>>^
 ```
 
-Output (both interpreters agree): `1 2 Fizz 4 Buzz Fizz 7 8 Fizz Buzz 11 Fizz 13 14 FizzBuzz `
-— 1,538 steps, exercised with Fizz-, Buzz-, FizzBuzz- and number-arms all
-physically distinct corridors.
+Output (ambos interpretes concuerdan): `1 2 Fizz 4 Buzz Fizz 7 8 Fizz Buzz 11 Fizz 13 14 FizzBuzz `
+— 1,538 pasos, ejercido con brazos Fizz-, Buzz-, FizzBuzz- y de numeros todos
+fisicamente distintos corredores.
 
-## Self-reference demo (v0.2)
+## Demo de autorreferencia (v0.2)
 
-`examples/meta_befunge.gf` compiles to a Befunge program that *prints another
-valid Befunge program* (`93+.@`), which prints `12 `. The chain is tested
-end-to-end: two execution levels, no GlyphFunge involved downstream.
+`examples/meta_befunge.gf` compila a un programa de Befunge que *imprime otro
+programa de Befunge valido* (`93+.@`), que imprime `12 `. La cadena se prueba
+end-to-end: dos niveles de ejecucion, sin GlyphFunge participando downstream.
 
 ```text
-meta_befunge.gf → meta_befunge.bf → (run) → "93+.@" → (run) → "12 "
+meta_befunge.gf → meta_befunge.bf → (corre) → "93+.@" → (corre) → "12 "
 ```
 
-### Honest note on full self-hosting
+### Nota honesta sobre self-hosting completo
 
-Writing the GlyphFunge *compiler itself* in Befunge-93 is out of reach for a
-Befunge-93 backend: the playfield caps at 80×25 = 2000 cells, and
-GlyphFunge's source model deliberately excludes `p`/`g` self-modification.
-What v0.2 does prove is the substrate loop stopping one level short:
-Befunge text emitted by Befunge programs generated by GlyphFunge. Full
-self-hosting would need a Befunge-98-class target — noted for the roadmap,
-not claimed.
+Escribir el *compilador mismo* de GlyphFunge en Befunge-93 esta fuera del alcance de un
+backend Befunge-93: el playfield esta limitado a 80×25 = 2000 celdas, y
+el modelo de fuente de GlyphFunge excluye intencionalmente la auto-modificacion `p`/`g`.
+Lo que v0.2 si demuestra es el loop de sustrato parando un nivel antes:
+texto Befunge emitido por programas de Befunge generados por GlyphFunge. El self-hosting
+completo necesitaria un target de clase Befunge-98 — anotado para el roadmap,
+no reclamado.
 
-## Side-by-side: arithmetic
+## Lado a lado: aritmetica
 
-`examples/arithmetic.gf` core:
+`examples/arithmetic.gf` nucleo:
 
 ```text
 route main:
@@ -220,71 +219,71 @@ route main:
 end
 ```
 
-generated `generated/arithmetic.bf`:
+generado `generated/arithmetic.bf`:
 
 ```
 93+.@
 ```
 
-output: `12 ` (Befunge-93 `.` prints the number followed by a space).
+output: `12 ` (Befunge-93 `.` imprime el numero seguido de un espacio).
 
-## Evidence (v0.4, all reproducible with `python -m glyphfunge verify`)
+## Evidencia (v0.4, toda reproducible con `python -m glyphfunge verify`)
 
-| example | playfield | sha256 (generated .bf) | output | reference | independent (befunge.js) |
+| ejemplo | playfield | sha256 (.bf generado) | output | referencia | independiente (befunge.js) |
 |---|---|---|---|---|---|
-| arithmetic | 8x2 | `221797a271b9e7a1bab20a4173a4ea867f85ea11f3d47642537717e71f360266` | `12 ` | PASS, 5 steps | PASS |
-| branch | 8x5 | `d4250e98adfd548928be31d5ec0c13cb0caa86588e766397e3bd7079f8a99490` | `0 ` | PASS, 7 steps | PASS |
-| countdown | 12x6 | `4cb51acb1184e87cab9176644cc8443dbbe51a1c1e15f94c06cea02e67220085` | `5 4 3 2 1 0 ` | PASS, 68 steps | PASS |
-| hello | 30x1 | `753072bf869627c921e722bde32881fa7ffbfe971edc74256b559e0c48dfc4cc` | `Hello, World!` | PASS, 15 steps | PASS |
-| fizzbuzz | 60x8 | `75ce71f83a9a651fd1dbe1b3ce84ad218328c9c1e529eb91ccf7d4d9970fcb4e` | `1 2 Fizz 4 Buzz Fizz 7 8 Fizz Buzz 11 Fizz 13 14 FizzBuzz ` | PASS, 1538 steps | PASS |
+| arithmetic | 8x2 | `221797a271b9e7a1bab20a4173a4ea867f85ea11f3d47642537717e71f360266` | `12 ` | PASS, 5 pasos | PASS |
+| branch | 8x5 | `d4250e98adfd548928be31d5ec0c13cb0caa86588e766397e3bd7079f8a99490` | `0 ` | PASS, 7 pasos | PASS |
+| countdown | 12x6 | `4cb51acb1184e87cab9176644cc8443dbbe51a1c1e15f94c06cea02e67220085` | `5 4 3 2 1 0 ` | PASS, 68 pasos | PASS |
+| hello | 30x1 | `753072bf869627c921e722bde32881fa7ffbfe971edc74256b559e0c48dfc4cc` | `Hello, World!` | PASS, 15 pasos | PASS |
+| fizzbuzz | 60x8 | `75ce71f83a9a651fd1dbe1b3ce84ad218328c9c1e529eb91ccf7d4d9970fcb4e` | `1 2 Fizz 4 Buzz Fizz 7 8 Fizz Buzz 11 Fizz 13 14 FizzBuzz ` | PASS, 1538 pasos | PASS |
 | meta_befunge | 20x2 | `e84bd135ce2f7d14890e135c3deca8d0a7720f6d5e04026e872badb194ce8e80` | `93+.@` | PASS | PASS |
-| code_ir_arithmetic | 80x3 | `a60e2bd45dd6a76c12d3c72463357a736730ba81118d143614aa8a4f88a76879` | `24 ` | PASS, 24 steps | PASS |
+| code_ir_arithmetic | 80x3 | `a60e2bd45dd6a76c12d3c72463357a736730ba81118d143614aa8a4f88a76879` | `24 ` | PASS, 24 pasos | PASS |
 
-Same `.gf` source always produces byte-identical `.bf` output
-(tested in CI-style tests, including a pinned SHA-256 for `countdown.bf`).
+Mismo fuente `.gf` siempre produce output `.bf` byte-identico
+(probado en pruebas estilo CI, incluyendo un SHA-256 fijado para `countdown.bf`).
 
-## Independent-execution test (no cheating)
+## Prueba de ejecucion independiente (sin trampa)
 
-`tests/test_glyphfunge.py` includes a test that hands each generated program
-to a third-party Befunge-93 interpreter — the `befunge.js` from
+`tests/test_glyphfunge.py` incluye una prueba que entrega cada programa generado
+a un interprete tercero de Befunge-93 — el `befunge.js` de
 [*Interpret-Esolangs-Online*](https://github.com/ARaza448/Interpret-Esolangs-Online)
-if present as a sibling checkout, via `node tools/run_befunge.js` (override
-with `BEFUNGE_JS_LIB`). The compiler never sees expected outputs; tests check
-behavior, not filenames. If the independent interpreter cannot be found, the
-test **skips with an explicit reason printed** — it never fakes a pass.
+si esta presente como checkout hermano, via `node tools/run_befunge.js` (override
+con `BEFUNGE_JS_LIB`). El compilador nunca ve outputs esperados; las pruebas checan
+comportamiento, no nombres de archivo. Si el interprete independiente no se encuentra, la
+prueba **se salta con una razon explicita impresa** — nunca finge un pase.
 
 ```bash
-python -m pytest tests -q -rs     # 45 tests; skip reasons shown if any
+python -m pytest tests -q -rs     # 45 pruebas; razones de skip se muestran si hay
 ```
 
-## Limitations (v0.4, on purpose)
+## Limitaciones (v0.4, intencional)
 
-- No `p`/`g` self-modification, no concurrency, no multiple IPs, no
-  Befunge-98, no fingerprints, no `?` (source of randomness is banned).
-- No input ops in the language yet (`&`/`~` deferred).
-- Only single digits push directly; larger numbers must be composed
-  arithmetically.
-- One branch shape: `|` with zero-down / nonzero-up. (`_` needs horizontal
-  arms; intentionally left out of v0.1.)
-- Entry is fixed at (0, 0) facing right — that is simply how Befunge-93
-  starts.
-- Static stack analysis is exact within the op set, but crosses into MAYBE
-  wording where a path-dependent depth is possible; it does not claim
-  general safety.
+- Sin auto-modificacion `p`/`g`, sin concurrencia, sin IPs multiples, sin
+  Befunge-98, sin fingerprints, sin `?` (la fuente de aleatoriedad esta prohibida).
+- Sin ops de input en el lenguaje aun (`&`/`~` diferidos).
+- Solo digitos individuales se pushean directamente; numeros mas grandes deben componerse
+  aritmeticamente.
+- Una forma de branch: `|` con cero-abajo / non-zero-arriba. (`_` necesita brazos
+  horizontales; intencionalmente excluido de v0.1.)
+- La entrada esta fija en (0, 0) mirando a la derecha — asi es como empieza
+  Befunge-93.
+- El analisis estatico de pila es exacto dentro del set de ops, pero cruza a lenguaje
+  de MAYBE donde es posible una profundidad dependiente de trayectoria; no reclama
+  seguridad general.
 
 ## Layout
 
 ```
-glyphfunge/            parser, ast, geometry, router, compiler, code_ir, validator, cli, interpreter
-examples/              GlyphFunge programs plus canonical Code IR fixture
-generated/             committed .bf and bridge artifacts (byte-stable)
-tests/                 pytest suite (45 tests)
-tools/run_befunge.js   harness for the independent third-party interpreter
-DESIGN.md              what came from GlyphFuck, what is Befunge-specific, why
+glyphfunge/            parser, ast, geometria, router, compilador, code_ir, validator, cli, interprete
+examples/              programas GlyphFunge mas el fixture canonico de Code IR
+generated/             .bf commiteados y artifacts de bridge (byte-estables)
+tests/                 suite pytest (45 pruebas)
+tools/run_befunge.js   harness para el interprete tercero independiente
+DESIGN.md              que vino de GlyphFuck, que es especifico de Befunge, por que
 ```
 
-GlyphFuck is the geometric reference and is **not** touched by this project.
+GlyphFuck es la referencia geometrica y **no** se toca en este proyecto.
 
-## License
+## Licencia
 
-MIT — see LICENSE.
+MIT — ver LICENSE.
