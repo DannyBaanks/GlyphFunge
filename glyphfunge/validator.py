@@ -85,7 +85,11 @@ def validate(program: Program, layout: LayoutResult) -> list[Issue]:
                 referenced.add(op.zero)
                 referenced.add(op.nonzero)
     for route in program.routes:
-        if route.name not in referenced:
+        entered_via_label = any(
+            label.route == route.name and label.name in referenced
+            for label in layout.labels.values()
+        )
+        if route.name not in referenced and not entered_via_label:
             issues.append(
                 Issue(
                     "WARNING",

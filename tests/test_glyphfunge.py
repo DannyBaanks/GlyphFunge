@@ -71,6 +71,8 @@ def test_all_canonical_examples_execute():
         "branch.gf": "0 ",
         "countdown.gf": "5 4 3 2 1 0 ",
         "hello.gf": "Hello, World!",
+        "fizzbuzz.gf": "1 2 Fizz 4 Buzz Fizz 7 8 Fizz Buzz 11 Fizz 13 14 FizzBuzz ",
+        "meta_befunge.gf": "93+.@",
     }
     for name, want in expected.items():
         source = (EXAMPLES / name).read_text(encoding="utf-8")
@@ -82,7 +84,10 @@ def test_all_canonical_examples_execute():
 # committed generated/*.bf artifacts.
 # --------------------------------------------------------------------------
 
-@pytest.mark.parametrize("name", ["arithmetic", "branch", "countdown", "hello"])
+ALL_EXAMPLES = ["arithmetic", "branch", "countdown", "hello", "fizzbuzz", "meta_befunge"]
+
+
+@pytest.mark.parametrize("name", ALL_EXAMPLES)
 def test_compile_is_byte_identical_across_runs(name):
     source = (EXAMPLES / f"{name}.gf").read_text(encoding="utf-8")
     a = compile_ok(source)
@@ -91,7 +96,7 @@ def test_compile_is_byte_identical_across_runs(name):
     assert hashlib.sha256(a.encode()).hexdigest() == hashlib.sha256(b.encode()).hexdigest()
 
 
-@pytest.mark.parametrize("name", ["arithmetic", "branch", "countdown", "hello"])
+@pytest.mark.parametrize("name", ALL_EXAMPLES)
 def test_compile_matches_committed_generated_file(name):
     source = (EXAMPLES / f"{name}.gf").read_text(encoding="utf-8")
     committed = (GENERATED / f"{name}.bf").read_text(encoding="utf-8")
@@ -290,7 +295,7 @@ EXT_OK, EXT_REASON = _external_available()
 
 
 @pytest.mark.skipif(not EXT_OK, reason=f"independent interpreter unavailable: {EXT_REASON}")
-@pytest.mark.parametrize("name", ["arithmetic", "branch", "countdown", "hello"])
+@pytest.mark.parametrize("name", ALL_EXAMPLES)
 def test_independent_interpreter_agrees(name):
     source = (EXAMPLES / f"{name}.gf").read_text(encoding="utf-8")
     bf = compile_ok(source)
@@ -301,6 +306,43 @@ def test_independent_interpreter_agrees(name):
     reference = run_befunge(bf)
     assert reference.status == "halted"
     assert output == reference.output == expected
+
+
+def test_meta_emits_a_valid_befunge_program():
+    """Self-reference chain: compile meta -> run -> its output is Befunge ->
+    run THAT -> '12 '. Two levels, no compiler involved downstream."""
+    source = (EXAMPLES / "meta_befunge.gf").read_text(encoding="utf-8")
+    level1 = run_source(source)
+    assert level1 == "93+.@"  # the emitted program
+    level2 = run_befunge(level1)
+    assert level2.status == "halted"
+    assert level2.output == "12 "
+
+
+def test_route_entered_only_via_label_is_not_dead_code():
+    # Regression: a goto may target a *label* inside another route; that
+    # route is reachable through the label and must not be flagged dead.
+    source = """
+canvas 8 5
+entry main
+
+route main:
+    push 5
+    turn down
+    goto work
+end
+
+route worker at 1 3 facing down:
+    label work
+    print_num
+    halt
+end
+"""
+    result = compile_source(source)
+    assert result.ok, "\n".join(i.render() for i in result.issues)
+    assert not any(
+        "never entered" in i.message for i in result.issues
+    ), "label-entered route wrongly flagged as unreachable"
 
 
 def test_independent_evidence_status_is_explicit(capsys=None):
